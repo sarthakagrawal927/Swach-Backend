@@ -2,12 +2,12 @@
 
 # Routes
 
-/org/register
-/register
+ - /org/register
+ - /register
 
-/org/login
-/login
+ - /org/login
+ - /login
 
-/posts/new
-/posts
-/posts/:id
+ - /posts/new
+ - /posts
+ - /posts/:id
