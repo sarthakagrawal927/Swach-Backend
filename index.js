@@ -19,10 +19,13 @@ if (process.env.NODE_ENV !== "production") {
   );
 }
 
-app.use("/login", require("./routes/login"));
-app.use("/register", require("./routes/register"));
-app.use("/org", require("./routes/org"));
-app.use("/posts", require("./routes/posts"));
+app.use("/org/login", require("./routes/org/login"));
+app.use("/org/register", require("./routes/org/register"));
+app.use("/org/posts", require("./routes/user/posts"));
+
+app.use("/user/login", require("./routes/user/login"));
+app.use("/user/register", require("./routes/user/register"));
+app.use("/user/posts", require("./routes/user/posts"));
 
 app.get("/", (req, res) => {
   res.send("Hello there");

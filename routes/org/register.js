@@ -1,5 +1,6 @@
 const express = require("express");
-
+const { check, validationResult } = require("express-validator");
+const Org = require("../../models/Organization");
 const regRouter = express.Router();
 
 regRouter.route("/").all((req, res, next) => {
@@ -9,3 +10,5 @@ regRouter.route("/").all((req, res, next) => {
 });
 
 module.exports = regRouter;
+
+// impossible
