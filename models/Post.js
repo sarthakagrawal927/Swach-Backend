@@ -25,9 +25,12 @@ const PostSchema = new Schema({
     type: Date,
     default: Date.now,
   },
-  organization: {
+  cleanedBy: {
     type: Schema.Types.ObjectId,
     ref: "organization",
+  },
+  cleanedOn: {
+    type: Date,
   },
 });
 

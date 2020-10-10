@@ -34,7 +34,7 @@ regRouter.post(
       if (user) {
         return res
           .status(400)
-          .json({ errors: [{ msg: "User already exists" }] });
+          .json({ errors: [{ msg: "Email is already used" }] });
       }
 
       user = new User({
@@ -50,7 +50,7 @@ regRouter.post(
       return res.json("User saved");
     } catch (err) {
       console.error(err.message);
-      res.status(500).send("Server s error");
+      res.status(500).send("Server error");
     }
   },
 );

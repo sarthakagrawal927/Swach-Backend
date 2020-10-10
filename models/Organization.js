@@ -17,17 +17,14 @@ const OrganizationSchema = new mongoose.Schema({
   mobile: {
     type: String,
     required: true,
+    unique: true,
   },
   location: {
     type: [String],
-    required: true,
   },
   lastSeenOn: {
     type: Date,
     default: Date.now,
-  },
-  cleanedOn: {
-    type: Date,
   },
 });
 
