@@ -28,6 +28,14 @@ regRouter.post(
           .status(400)
           .json({ errors: [{ msg: "Email not registered" }] });
       }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+
+      if (!isMatch) {
+        return res
+          .status(400)
+          .json({ errors: [{ msg: "Invalid Credentials" }] });
+      }
     } catch (err) {
       console.error(err.message);
       res.status(500).send("Server serror");
