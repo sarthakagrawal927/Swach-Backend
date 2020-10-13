@@ -8,7 +8,7 @@ const regRouter = express.Router();
 regRouter.post(
   "/",
   [
-    check("name", "Name is required").not().isEmpty(),
+    check("name", "name is required").not().isEmpty(),
     check("email", "Please include a valid email").isEmail(),
     check(
       "password",
