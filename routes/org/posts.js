@@ -1,17 +1,16 @@
 const express = require("express");
-
 const postRouter = express.Router();
+const Post = require("../../models/Post");
 
-postRouter.route("/").all((req, res, next) => {
+postRouter.route("/").get(async (req, res, next) => {
   res.statusCode = 200;
   res.setHeader("Content-Type", "text/plain");
-  res.end("Your posts are underway!");
-});
-
-postRouter.route("/new").all((req, res, next) => {
-  res.statusCode = 200;
-  res.setHeader("Content-Type", "text/plain");
-  res.end("Your NEW posts is underway!");
+  try {
+    const posts = await Post.find().sort({ date: -1 });
+    res.json(posts);
+  } catch (err) {
+    res.send(err.message);
+  }
 });
 
 postRouter.route("/:id").all((req, res, next) => {

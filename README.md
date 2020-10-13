@@ -1,16 +1,18 @@
 # Swach-Backend
 
-# Routes
+## ORG Routes
+/org
 
-- /org/register
-- /register
-
-- /org/login
 - /login
+Needs email and password
+- /register
+Needs Name, Email, Phone, Pwd, Confirm Pwds
 
-- /posts/new
-- /posts
-- /posts/:id
+## USER Routes
+/user
+
+- /login
+- /register
 
 # DB
 

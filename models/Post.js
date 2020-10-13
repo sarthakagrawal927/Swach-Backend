@@ -14,8 +14,7 @@ const PostSchema = new Schema({
     required: true,
   },
   location: {
-    type: [String],
-    required: true,
+    type: String,
   },
   pincode: {
     type: String,
