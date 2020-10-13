@@ -2,6 +2,7 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const connectDB = require("./config/db");
+var multer  = require('multer')
 
 const app = express();
 connectDB();
@@ -17,7 +18,7 @@ if (process.env.NODE_ENV !== "production") {
       credentials: true,
     }),
   );
-}
+} 
 
 app.use("/org/login", require("./routes/org/login"));
 app.use("/org/register", require("./routes/org/register"));
