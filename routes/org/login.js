@@ -2,9 +2,9 @@ const express = require("express");
 const { check, validationResult } = require("express-validator");
 const User = require("../../models/Organization");
 
-const regRouter = express.Router();
+const loginRouter = express.Router();
 
-regRouter.post(
+loginRouter.post(
   "/",
   [
     check("email", "Please include a valid email").isEmail(),
@@ -38,9 +38,9 @@ regRouter.post(
       }
     } catch (err) {
       console.error(err.message);
-      res.status(500).send("Server serror");
+      res.status(500).send("Server error");
     }
   },
 );
 
-module.exports = regRouter;
+module.exports = loginRouter;
