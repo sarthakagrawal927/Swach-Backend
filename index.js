@@ -1,14 +1,16 @@
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
+const passport = require("passport");
 const connectDB = require("./config/db");
-var multer = require("multer");
+// var multer = require("multer");
 
 const app = express();
 connectDB();
 
 app.use(express.json());
 app.use(morgan("dev"));
+app.use(passport.initialize());
 
 if (process.env.NODE_ENV !== "production") {
   app.use(
@@ -16,7 +18,7 @@ if (process.env.NODE_ENV !== "production") {
       origin: "http://localhost:3000",
       methods: ["POST", "PUT", "GET", "OPTIONS", "HEAD"],
       credentials: true,
-    }),
+    })
   );
 }
 

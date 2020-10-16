@@ -1,8 +1,8 @@
 const express = require("express");
-const jwt = require("jsonwebtoken");
+const passport = require("passport");
 
 const { check, validationResult } = require("express-validator");
-const User = require("../../models/User");
+const authenticate = require("../../config/authenticate");
 
 const loginRouter = express.Router();
 
@@ -12,68 +12,38 @@ loginRouter.post(
     check("email", "Please include a valid email").isEmail(),
     check(
       "password",
-      "Please enter a password with 6 or more characters",
+      "Please enter a password with 6 or more characters"
     ).isLength({ min: 6 }),
   ],
-  async (req, res) => {
+  async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ success: false, errors: errors.array() });
     }
+    passport.authenticate("local", (err, user, info) => {
+      try {
+        if (err) {
+          return next(err);
+        }
 
-    const { email, password } = req.body;
+        if (!user) {
+          const error = new Error("Not registered.");
+          return next(error);
+        }
 
-    try {
-      let user = await User.findOne({ email });
-      if (!user) {
-        return res
-          .status(400)
-          .json({ errors: [{ msg: "Email not registered" }] });
-      }
-      const isMatch = await bcrypt.compare(password, user.password);
+        req.login(user, { session: false }, (error) => {
+          if (error) return next(error);
 
-      if (!isMatch) {
-        return res
-          .status(400)
-          .json({ errors: [{ msg: "Invalid Credentials" }] });
-      }
-    } catch (err) {
-      console.error(err.message);
-      res.status(500).send("Server error");
-    }
-  },
-);
+          const body = { _id: user._id, email: user.email };
+          const token = authenticate.getToken(body);
 
-loginRouter.post("/", async (req, res, next) => {
-  passport.authenticate("login", async (err, user, info) => {
-    try {
-      if (err || !user) {
-        const error = new Error("An error occurred.");
-
+          return res.json({ success: true, token: token });
+        });
+      } catch (error) {
         return next(error);
       }
-
-      req.login(user, { session: false }, async (error) => {
-        if (error) return next(error);
-
-        const body = { _id: user._id, email: user.email };
-        const token = jwt.sign({ user: body }, "TOP_SECRET");
-
-        return res.json({ token });
-      });
-    } catch (error) {
-      return next(error);
-    }
-  })(req, res, next);
-});
-
-loginRouter.post(
-  "/",
-  passport.authenticate("jwt", { session: false }),
-  function (req, res) {
-    res.send("done");
-    res.send(req.user.profile);
-  },
+    })(req, res, next);
+  }
 );
 
 module.exports = loginRouter;
