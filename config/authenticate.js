@@ -37,14 +37,14 @@ exports.localPassport = passport.use(
         }
         return done(null, user);
       });
-    },
-  ),
+    }
+  )
 );
 
 exports.jwtPassport = passport.use(
   new JwtStrategy(options, (jwt_payload, done) => {
     console.log(jwt_payload);
-    User.findOne({ id: jwt_payload._id }, (err, user) => {
+    User.findById(jwt_payload._id, (err, user) => {
       if (err) {
         return done(err, false);
       }
@@ -54,7 +54,7 @@ exports.jwtPassport = passport.use(
         return done(null, false);
       }
     });
-  }),
+  })
 );
 
 exports.verifyUser = passport.authenticate("jwt", { session: false });
