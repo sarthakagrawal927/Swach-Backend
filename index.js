@@ -3,7 +3,6 @@ const morgan = require("morgan");
 const cors = require("cors");
 const passport = require("passport");
 const connectDB = require("./config/db");
-// var multer = require("multer");
 
 const app = express();
 connectDB();
@@ -18,7 +17,7 @@ if (process.env.NODE_ENV !== "production") {
       origin: "http://localhost:3000",
       methods: ["POST", "PUT", "GET", "OPTIONS", "HEAD"],
       credentials: true,
-    })
+    }),
   );
 }
 
@@ -32,6 +31,10 @@ app.use("/user/posts", require("./routes/user/posts"));
 
 app.get("/", (req, res) => {
   res.send("Hello there");
+});
+
+app.get("/org", (req, res) => {
+  res.send("Discover Garbage in your area.");
 });
 
 const PORT = process.env.PORT || 3000;

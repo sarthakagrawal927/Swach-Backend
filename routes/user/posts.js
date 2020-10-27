@@ -5,47 +5,41 @@ const postRouter = express.Router();
 
 const User = require("../../models/User");
 const Post = require("../../models/Post");
+const authenticate = require("../../config/authenticate");
 
 const aws = require("aws-sdk");
 const multerS3 = require("multer-s3");
 const multer = require("multer");
 const path = require("path");
 
-// const keys = require("../../config/keys");
-// const AWS_accessKeyId = keys.accessKeyId;
-// const AWS_secretAccessKey = keys.secretAccessKey;
-// const AWS_Bucket = keys.Bucket;
+const keys = require("../../config/keys");
+const AWS_accessKeyId = keys.accessKeyId;
+const AWS_secretAccessKey = keys.secretAccessKey;
+const AWS_Bucket = keys.Bucket;
 
-// SET STORAGE ENGINE
-const storage = multer.diskStorage({
-  destination: "./org/posts/",
-  filename: function (req, res, cb) {
-    cb(
-      null,
-      file.fieldname + "-" + Date.noe() + path.extname(file.originalname)
-    );
-  },
+//parody
+postRouter.get("/", (req, res) => {
+  res.send("Make an Org account to view Garbage");
 });
 
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 1000000 },
-  fileFilter: function (req, file, cb) {
-    checkFileType(file, cb);
-  },
-}).array("myImage", 10);
+// SET STORAGE ENGINE
+// const storage = multer.diskStorage({
+//   destination: "./org/posts/",
+//   filename: function (req, res, cb) {
+//     cb(
+//       null,
+//       file.fieldname + "-" + Date.noe() + path.extname(file.originalname),
+//     );
+//   },
+// });
 
-// function checkFileType(file, cb) {
-//   const fileTypes = /jpeg|jpg|png/; //check file type
-//   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-//   const mimetype = filetypes.test(file.mimetype);
-
-//   if (mimetype && extname) {
-//     return cb(null, true);
-//   } else {
-//     cb("Error:Images ONly");
-//   }
-// }
+// const upload = multer({
+//   storage: storage,
+//   limits: { fileSize: 1000000 },
+//   fileFilter: function (req, file, cb) {
+//     checkFileType(file, cb);
+//   },
+// }).array("myImage", 10);
 
 // postRouter.get("/", async (req, res) => {
 //   try {
@@ -70,47 +64,47 @@ const upload = multer({
 //   });
 // });
 
-// const s3 = new aws.S3({
-//   accessKeyId: AWS_accessKeyId,
-//   secretAccessKey: AWS_secretAccessKey,
-//   Bucket: AWS_Bucket,
-// });
+const s3 = new aws.S3({
+  accessKeyId: AWS_accessKeyId,
+  secretAccessKey: AWS_secretAccessKey,
+  Bucket: AWS_Bucket,
+});
 
-// function checkFileType(file, cb) {
-//   // Allowed ext
-//   const filetypes = /jpeg|jpg|png|gif|jfif/;
-//   // Check ext
-//   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-//   // Check mime
-//   const mimetype = filetypes.test(file.mimetype);
-//   if (mimetype && extname) {
-//     return cb(null, true);
-//   } else {
-//     cb("Error: Images Only!");
-//   }
-// }
+function checkFileType(file, cb) {
+  // Allowed ext
+  const filetypes = /jpeg|jpg|png|gif|jfif/;
+  // Check ext
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  // Check mime
+  const mimetype = filetypes.test(file.mimetype);
+  if (mimetype && extname) {
+    return cb(null, true);
+  } else {
+    cb("Error: Images Only!");
+  }
+}
 
-// const maxUploads = 4;
-// const uploadsBusinessGallery = multer({
-//   storage: multerS3({
-//     s3: s3,
-//     bucket: AWS_Bucket,
-//     acl: "public-read",
-//     key: function (req, file, cb) {
-//       cb(
-//         null,
-//         path.basename(file.originalname, path.extname(file.originalname)) +
-//           "-" +
-//           Date.now() +
-//           path.extname(file.originalname)
-//       );
-//     },
-//   }),
-//   limits: { fileSize: 2000000 }, // In bytes: 2000000 bytes = 2 MB
-//   fileFilter: function (req, file, cb) {
-//     checkFileType(file, cb);
-//   },
-// }).array("galleryImage", maxUploads);
+const maxUploads = 4;
+const uploadsBusinessGallery = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: AWS_Bucket,
+    acl: "public-read",
+    key: function (req, file, cb) {
+      cb(
+        null,
+        path.basename(file.originalname, path.extname(file.originalname)) +
+          "-" +
+          Date.now() +
+          path.extname(file.originalname),
+      );
+    },
+  }),
+  limits: { fileSize: 2000000 }, // In bytes: 2000000 bytes = 2 MB
+  fileFilter: function (req, file, cb) {
+    checkFileType(file, cb);
+  },
+}).array("galleryImage", maxUploads);
 
 // @route    POST posts
 // @desc     Create a post
@@ -122,6 +116,7 @@ postRouter.post(
     check("imageURL", "Description is required").not().isEmpty(),
     check("pincode", "Pincode is required").not().isEmpty(),
   ],
+  authenticate.verifyUser,
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -129,13 +124,12 @@ postRouter.post(
     }
 
     try {
-      // const user = await User.findById(req.user.id).select("-password");
-
-      // const profile = await Profile.findOne({ user: user });
+      const user = await User.findById(req.user.id).select("-password");
+      console.log(user);
 
       const newPost = new Post({
+        user: user,
         desc: req.body.desc,
-
         imageURL: req.body.imageURL,
         pincode: req.body.pincode,
       });
@@ -147,7 +141,7 @@ postRouter.post(
       console.error(err);
       res.status(500).send("Server Error");
     }
-  }
+  },
 );
 
 // @route    POST posts/upload/multiple_image_upload
@@ -180,24 +174,6 @@ postRouter.post("/upload/multiple_image_upload", (req, res) => {
       });
     }
   });
-});
-
-postRouter.route("/").all((req, res, next) => {
-  res.statusCode = 200;
-  res.setHeader("Content-Type", "text/plain");
-  res.end("Your posts are underway!");
-});
-
-postRouter.route("/new").all((req, res, next) => {
-  res.statusCode = 200;
-  res.setHeader("Content-Type", "text/plain");
-  res.end("Your NEW posts is underway!");
-});
-
-postRouter.route("/:id").all((req, res, next) => {
-  res.statusCode = 200;
-  res.setHeader("Content-Type", "text/plain");
-  res.end(`Your post ${req.params.id} is underway!`);
 });
 
 module.exports = postRouter;
