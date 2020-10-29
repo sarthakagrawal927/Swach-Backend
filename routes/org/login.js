@@ -1,45 +1,47 @@
 const express = require("express");
+const passport = require("passport");
+
 const { check, validationResult } = require("express-validator");
-const User = require("../../models/Organization");
+const Org = require("../../models/Organization");
 
 const loginRouter = express.Router();
+const authenticate = require("../../config/authenticateOrg");
 
 loginRouter.post(
   "/",
   [
     check("email", "Please include a valid email").isEmail(),
-    check(
-      "password",
-      "Please enter a password with 6 or more characters",
-    ).isLength({ min: 6 }),
+    check("password", "Please enter passwrod").notEmpty(),
   ],
-  async (req, res) => {
+  async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { email, password } = req.body;
+    passport.authenticate("local", (err, org, info) => {
+      try {
+        if (err) {
+          return next(err);
+        }
 
-    try {
-      let user = await User.findOne({ email });
-      if (!user) {
-        return res
-          .status(400)
-          .json({ errors: [{ msg: "Email not registered" }] });
+        if (!org) {
+          const error = new Error("Not registered.");
+          return next(error);
+        }
+
+        req.login(org, { session: false }, (error) => {
+          if (error) return next(error);
+
+          const body = { _id: org._id, email: org.email };
+          const token = authenticate.getToken(body);
+
+          return res.json({ success: true, token: token });
+        });
+      } catch (error) {
+        return next(error);
       }
-
-      const isMatch = await bcrypt.compare(password, user.password);
-
-      if (!isMatch) {
-        return res
-          .status(400)
-          .json({ errors: [{ msg: "Invalid Credentials" }] });
-      }
-    } catch (err) {
-      console.error(err.message);
-      res.status(500).send("Server error");
-    }
+    })(req, res, next);
   },
 );
 

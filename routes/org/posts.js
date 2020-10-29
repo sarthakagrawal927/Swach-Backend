@@ -1,8 +1,9 @@
 const express = require("express");
 const postRouter = express.Router();
 const Post = require("../../models/Post");
+const authenticate = require("../../config/authenticateOrg");
 
-postRouter.route("/").get(async (req, res, next) => {
+postRouter.get("/", authenticate.verifyOrg, async (req, res, next) => {
   res.statusCode = 200;
   res.setHeader("Content-Type", "text/plain");
   try {

@@ -23,88 +23,88 @@ postRouter.get("/", (req, res) => {
 });
 
 // SET STORAGE ENGINE
-const storage = multer.diskStorage({
-  destination: "./org/posts/",
-  filename: function (req, res, cb) {
-    cb(
-      null,
-      file.fieldname + "-" + Date.noe() + path.extname(file.originalname)
-    );
-  },
-});
-
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 1000000 },
-  fileFilter: function (req, file, cb) {
-    checkFileType(file, cb);
-  },
-}).array("myImage", 10);
-
-postRouter.get("/", async (req, res) => {
-  try {
-  } catch (error) {
-    console.log("Error occurred: ", error);
-  }
-});
-
-postRouter.post("/", authenticate.verifyUser, (req, res) => {
-  upload(req, res, (err) => {
-    if (err) {
-    } else {
-      if (req.file == undefined) {
-        res.send("NO file selected");
-      } else {
-        res.render("index", {
-          msg: "File uploaded",
-          file: "", //plcae where all thw uploaded pictures will be stored as a list
-        });
-      }
-    }
-  });
-});
-
-// const s3 = new aws.S3({
-//   accessKeyId: AWS_accessKeyId,
-//   secretAccessKey: AWS_secretAccessKey,
-//   Bucket: AWS_Bucket,
+// const storage = multer.diskStorage({
+//   destination: "./org/posts/",
+//   filename: function (req, res, cb) {
+//     cb(
+//       null,
+//       file.fieldname + "-" + Date.noe() + path.extname(file.originalname),
+//     );
+//   },
 // });
 
-// function checkFileType(file, cb) {
-//   // Allowed ext
-//   const filetypes = /jpeg|jpg|png|gif|jfif/;
-//   // Check ext
-//   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-//   // Check mime
-//   const mimetype = filetypes.test(file.mimetype);
-//   if (mimetype && extname) {
-//     return cb(null, true);
-//   } else {
-//     cb("Error: Images Only!");
-//   }
-// }
-
-// const maxUploads = 4;
-// const uploadsBusinessGallery = multer({
-//   storage: multerS3({
-//     s3: s3,
-//     bucket: AWS_Bucket,
-//     acl: "public-read",
-//     key: function (req, file, cb) {
-//       cb(
-//         null,
-//         path.basename(file.originalname, path.extname(file.originalname)) +
-//           "-" +
-//           Date.now() +
-//           path.extname(file.originalname),
-//       );
-//     },
-//   }),
-//   limits: { fileSize: 2000000 }, // In bytes: 2000000 bytes = 2 MB
+// const upload = multer({
+//   storage: storage,
+//   limits: { fileSize: 1000000 },
 //   fileFilter: function (req, file, cb) {
 //     checkFileType(file, cb);
 //   },
-// }).array("galleryImage", maxUploads);
+// }).array("myImage", 10);
+
+// postRouter.get("/", async (req, res) => {
+//   try {
+//   } catch (error) {
+//     console.log("Error occurred: ", error);
+//   }
+// });
+
+// postRouter.post("/", authenticate.verifyUser, (req, res) => {
+//   upload(req, res, (err) => {
+//     if (err) {
+//     } else {
+//       if (req.file == undefined) {
+//         res.send("NO file selected");
+//       } else {
+//         res.render("index", {
+//           msg: "File uploaded",
+//           file: "", //plcae where all thw uploaded pictures will be stored as a list
+//         });
+//       }
+//     }
+//   });
+// });
+
+const s3 = new aws.S3({
+  accessKeyId: AWS_accessKeyId,
+  secretAccessKey: AWS_secretAccessKey,
+  Bucket: AWS_Bucket,
+});
+
+function checkFileType(file, cb) {
+  // Allowed ext
+  const filetypes = /jpeg|jpg|png|gif|jfif/;
+  // Check ext
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  // Check mime
+  const mimetype = filetypes.test(file.mimetype);
+  if (mimetype && extname) {
+    return cb(null, true);
+  } else {
+    cb("Error: Images Only!");
+  }
+}
+
+const maxUploads = 4;
+const uploadsBusinessGallery = multer({
+  storage: multerS3({
+    s3: s3,
+    bucket: AWS_Bucket,
+    acl: "public-read",
+    key: function (req, file, cb) {
+      cb(
+        null,
+        path.basename(file.originalname, path.extname(file.originalname)) +
+          "-" +
+          Date.now() +
+          path.extname(file.originalname),
+      );
+    },
+  }),
+  limits: { fileSize: 2000000 }, // In bytes: 2000000 bytes = 2 MB
+  fileFilter: function (req, file, cb) {
+    checkFileType(file, cb);
+  },
+}).array("galleryImage", maxUploads);
 
 // @route    POST posts
 // @desc     Create a post
@@ -141,39 +141,43 @@ postRouter.post(
       console.error(err);
       res.status(500).send("Server Error");
     }
-  }
+  },
 );
 
 // @route    POST posts/upload/multiple_image_upload
 // @desc     Add images to a post
 // @access   Private
-postRouter.post("/upload/multiple_image_upload", (req, res) => {
-  uploadsBusinessGallery(req, res, (error) => {
-    console.log("files", req.files);
-    if (error) {
-      console.log("errors", error);
-      res.json({ error: error });
-    } else if (req.files === undefined) {
-      // If File not found
-      console.log("Error: No File Selected!");
-      res.json("Error: No File Selected");
-    } else {
-      // Success
-      let fileArray = req.files,
-        fileLocation;
-      const galleryImgLocationArray = [];
-      for (let i = 0; i < fileArray.length; i++) {
-        fileLocation = fileArray[i].location;
-        console.log(fileLocation);
-        galleryImgLocationArray.push(fileLocation);
+postRouter.post(
+  "/upload/multiple_image_upload",
+  authenticate.verifyUser,
+  (req, res) => {
+    uploadsBusinessGallery(req, res, (error) => {
+      console.log("files", req.files);
+      if (error) {
+        console.log("errors", error);
+        res.json({ error: error });
+      } else if (req.files === undefined) {
+        // If File not found
+        console.log("Error: No File Selected!");
+        res.json("Error: No File Selected");
+      } else {
+        // Success
+        let fileArray = req.files,
+          fileLocation;
+        const galleryImgLocationArray = [];
+        for (let i = 0; i < fileArray.length; i++) {
+          fileLocation = fileArray[i].location;
+          console.log(fileLocation);
+          galleryImgLocationArray.push(fileLocation);
+        }
+        // Save the file name into database
+        res.json({
+          filesArray: fileArray,
+          locationArray: galleryImgLocationArray,
+        });
       }
-      // Save the file name into database
-      res.json({
-        filesArray: fileArray,
-        locationArray: galleryImgLocationArray,
-      });
-    }
-  });
-});
+    });
+  },
+);
 
 module.exports = postRouter;

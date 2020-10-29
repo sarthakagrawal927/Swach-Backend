@@ -2,8 +2,7 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const JwtStrategy = require("passport-jwt").Strategy;
 const ExtractJwt = require("passport-jwt").ExtractJwt;
-const User = require("../models/User");
-// const Organization = require("../models/Organization");
+const Organization = require("../models/Organization");
 
 const keys = require("./keys");
 const jwt = require("jsonwebtoken");
@@ -24,20 +23,20 @@ exports.localPassport = passport.use(
       usernameField: "email",
     },
     async (email, password, done) => {
-      User.findOne({ email }, async (err, user) => {
+      Organization.findOne({ email }, async (err, org) => {
         if (err) {
           return done(err);
         }
-        if (!user) {
+        if (!org) {
           return done(null, false);
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await bcrypt.compare(password, org.password);
 
         if (!isMatch) {
           return done(new Error("Incorrect password"));
         }
-        return done(null, user);
+        return done(null, org);
       });
     },
   ),
@@ -46,12 +45,12 @@ exports.localPassport = passport.use(
 exports.jwtPassport = passport.use(
   new JwtStrategy(options, (jwt_payload, done) => {
     console.log(jwt_payload);
-    User.findById(jwt_payload._id, (err, user) => {
+    Organization.findById(jwt_payload._id, (err, org) => {
       if (err) {
         return done(err, false);
       }
-      if (user) {
-        return done(null, user);
+      if (org) {
+        return done(null, org);
       } else {
         return done(null, false);
       }
@@ -59,9 +58,4 @@ exports.jwtPassport = passport.use(
   }),
 );
 
-exports.verifyUser = passport.authenticate("jwt", { session: false });
-
-// exports.verifyOrg = (req, res, next) => {
-//   if (req.user.isOrg) next();
-//   else return res.status(403);
-// };
+exports.verifyOrg = passport.authenticate("jwt", { session: false });
