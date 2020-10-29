@@ -4,20 +4,23 @@ const Post = require("../../models/Post");
 const authenticate = require("../../config/authenticateOrg");
 
 postRouter.get("/", authenticate.verifyOrg, async (req, res, next) => {
-  res.statusCode = 200;
-  res.setHeader("Content-Type", "text/plain");
   try {
-    const posts = await Post.find().sort({ date: -1 });
+    const posts = await Post.find({
+      pincode: { $in: org.location },
+    }).sort({ date: -1 });
     res.json(posts);
   } catch (err) {
     res.send(err.message);
   }
 });
 
-postRouter.route("/:id").all((req, res, next) => {
-  res.statusCode = 200;
-  res.setHeader("Content-Type", "text/plain");
-  res.end(`Your post ${req.params.id} is underway!`);
+postRouter.get("/:id", authenticate.verifyOrg, async (req, res, next) => {
+  try {
+    const post = await Post.findOne({ _id: req.params.id });
+    if (post) res.send(post);
+  } catch (err) {
+    console.log(err.message);
+  }
 });
 
 module.exports = postRouter;
