@@ -10,11 +10,11 @@ const bcrypt = require("bcryptjs");
 
 const options = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: keys.secretKey,
+  secretOrKey: keys.secretKeyForOrg,
 };
 
-exports.getToken = function (user) {
-  return jwt.sign(user, keys.secretKey, { expiresIn: 36000000 });
+exports.getToken = function (org) {
+  return jwt.sign(org, keys.secretKeyForOrg, { expiresIn: 36000000 });
 };
 
 exports.localPassport = passport.use(

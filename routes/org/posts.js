@@ -6,7 +6,7 @@ const authenticate = require("../../config/authenticateOrg");
 postRouter.get("/", authenticate.verifyOrg, async (req, res, next) => {
   try {
     const posts = await Post.find({
-      pincode: { $in: org.location },
+      pincode: { $in: req.body.org.location },
     }).sort({ date: -1 });
     res.json(posts);
   } catch (err) {

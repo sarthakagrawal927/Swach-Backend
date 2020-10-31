@@ -3,7 +3,6 @@ const LocalStrategy = require("passport-local").Strategy;
 const JwtStrategy = require("passport-jwt").Strategy;
 const ExtractJwt = require("passport-jwt").ExtractJwt;
 const User = require("../models/User");
-// const Organization = require("../models/Organization");
 
 const keys = require("./keys");
 const jwt = require("jsonwebtoken");
@@ -60,8 +59,3 @@ exports.jwtPassport = passport.use(
 );
 
 exports.verifyUser = passport.authenticate("jwt", { session: false });
-
-// exports.verifyOrg = (req, res, next) => {
-//   if (req.user.isOrg) next();
-//   else return res.status(403);
-// };

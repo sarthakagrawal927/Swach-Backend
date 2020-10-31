@@ -2,10 +2,9 @@ const express = require("express");
 const passport = require("passport");
 
 const { check, validationResult } = require("express-validator");
-const Org = require("../../models/Organization");
+const authenticate = require("../../config/authenticateOrg");
 
 const loginRouter = express.Router();
-const authenticate = require("../../config/authenticateOrg");
 
 loginRouter.post(
   "/",
@@ -24,12 +23,10 @@ loginRouter.post(
         if (err) {
           return next(err);
         }
-
         if (!org) {
           const error = new Error("Not registered.");
           return next(error);
         }
-
         req.login(org, { session: false }, (error) => {
           if (error) return next(error);
 
